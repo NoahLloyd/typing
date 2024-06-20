@@ -78,27 +78,31 @@ const Results: React.FC<ResultsProps> = ({
   }, [onReplay]); // Ensure the effect runs again if onReplay changes
 
   return (
-    <div className="w-full p-8">
+    <div className="w-full">
       <div className="flex flex-row gap-10 mb-8">
         <div className="flex flex-col space-y-4">
-          <div className=" p-3 bg-slate-900 rounded">
-            <p className="text-md text-gray-500 uppercase">WPM</p>
-            <p className="text-5xl font-bold">{speed}</p>
+          <div className=" ">
+            <p className="text-md text-slate-500 uppercase">WPM</p>
+            <p className="text-5xl font-bold text-teal-500">{speed}</p>
           </div>
-          <div className="p-3 bg-slate-900 rounded">
-            <p className="text-md text-gray-500 uppercase">ACC</p>
-            <p className="text-5xl font-bold">{accuracy}%</p>
+          <div className="">
+            <p className="text-md text-slate-500 uppercase">ACC</p>
+            <p className="text-5xl font-bold text-teal-500">{accuracy}%</p>
           </div>
-          <div className="p-3 bg-slate-900 rounded">
-            <p className="text-md text-gray-500 uppercase">TIME</p>
-            <p className="text-5xl font-bold">{totalTime}</p>
+          <div className="">
+            <p className="text-md text-slate-500 uppercase">TIME</p>
+            <p className="text-5xl font-bold text-teal-500">{totalTime}</p>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={wpmDataWithTimeDiff}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2f2f2f" />
-            <XAxis dataKey="time" tickFormatter={(time) => `${time}s`} />
-            <YAxis stroke="#2f2f2f" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
+            <XAxis
+              stroke="#1E293B"
+              dataKey="time"
+              tickFormatter={(time) => `${time}s`}
+            />
+            <YAxis stroke="#1E293B" />
             <Tooltip
               content={({ active, payload, label }) => (
                 <CustomTooltip
@@ -111,10 +115,10 @@ const Results: React.FC<ResultsProps> = ({
             <Line
               type="monotone"
               dataKey="wpm"
-              stroke="#008080"
+              stroke="#14B8A6"
               strokeWidth={3}
-              dot={{ stroke: "#008080", strokeWidth: 2, fill: "#008080" }}
-              activeDot={{ r: 6, fill: "#008080", stroke: "none" }}
+              dot={{ stroke: "#14B8A6", strokeWidth: 2, fill: "#14B8A6" }}
+              activeDot={{ r: 6, fill: "#14B8A6", stroke: "none" }}
             />
           </LineChart>
         </ResponsiveContainer>

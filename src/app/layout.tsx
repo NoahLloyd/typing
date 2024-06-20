@@ -21,10 +21,16 @@ export default function RootLayout({
     <html lang="en">
       <body className={inconsolata.className}>
         <NextAuthProvider>
-          <div className="w-full">
-            <Header />
+          <div className="fixed top-0 left-0 w-full z-10">
+            <div className="max-w-7xl mx-auto w-full">
+              <Header />
+            </div>
           </div>
-          <div className="w-full">{children}</div>
+          <div className="">
+            <div className=" bg-slate-950 flex items-center w-full justify-center">
+              <div className="max-w-7xl w-full">{children}</div>
+            </div>
+          </div>
         </NextAuthProvider>
       </body>
     </html>
