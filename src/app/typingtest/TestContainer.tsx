@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import TextDisplay from "./TextDisplay";
 import Results from "./Results";
 import { generateText } from "./textGenerator";
@@ -21,6 +21,9 @@ const TestContainer: React.FC = () => {
   const [textToType, setTextToType] = useState<string>("");
   const [selectionType, setSelectionType] = useState<string>("time");
   const [selectionValue, setSelectionValue] = useState<number>(15);
+
+  const clickSoundRef = useRef<HTMLAudioElement>(null);
+  const errorSoundRef = useRef<HTMLAudioElement>(null);
 
   const handleSelect = (type: string, value: number) => {
     console.log(`${type} selected:`, value);
@@ -54,18 +57,44 @@ const TestContainer: React.FC = () => {
       } else {
         if (testEnded) return;
 
-        setKeystrokes((prevKeystrokes) => [
-          ...prevKeystrokes,
-          { key: keyValue, timestamp: new Date() },
-        ]);
+        setKeystrokes((prevKeystrokes) => {
+          const newKeystrokes = [
+            ...prevKeystrokes,
+            { key: keyValue, timestamp: new Date() },
+          ];
 
-        const { userInput, isIncorrect } = reconstructUserInput(
-          textToType,
-          keystrokes
-        );
-        if (userInput.length === textToType.length - 1 && !isIncorrect) {
-          setTestEnded(true);
-        }
+          // Determine if the last keystroke was correct
+          const { userInput, isIncorrect } = reconstructUserInput(
+            textToType,
+            newKeystrokes
+          );
+
+          // Play the appropriate sound
+          if (isIncorrect && errorSoundRef.current) {
+            const errorSound = errorSoundRef.current.cloneNode(
+              true
+            ) as HTMLAudioElement;
+            errorSound.volume = 0.2;
+            errorSound.play();
+          } else if (
+            keyValue !== "Backspace" &&
+            keyValue !== "Shift" &&
+            !isSpecialCombination
+          ) {
+            // Select a random click sound
+            const clickSoundNumber = Math.ceil(Math.random() * 6);
+            const clickSoundPath = `/sounds/click${clickSoundNumber}.wav`;
+            const clickSound = new Audio(clickSoundPath);
+            clickSound.volume = 0.18;
+            clickSound.play();
+          }
+          // Check if the test should end
+          if (userInput.length === textToType.length - 1 && !isIncorrect) {
+            setTestEnded(true);
+          }
+
+          return newKeystrokes;
+        });
       }
     };
 
@@ -159,6 +188,8 @@ const TestContainer: React.FC = () => {
           />
         </>
       )}
+      <audio ref={clickSoundRef} src="/sounds/click.wav" preload="auto" />
+      <audio ref={errorSoundRef} src="/sounds/error.wav" preload="auto" />
     </div>
   );
 };
