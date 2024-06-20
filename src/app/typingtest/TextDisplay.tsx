@@ -52,7 +52,13 @@ const TextDisplay: React.FC<TextDisplayProps> = ({
     >
       <p className="whitespace-pre-wrap">
         <span className="text-white">{correctInput}</span>
-        <span className="text-red-500 underline">
+        <span
+          className=""
+          style={{
+            color: "#fa1f0f",
+            textShadow: "0 0 30px #fa1f0f88, 0 0 30px #fa1f0f88",
+          }}
+        >
           {incorrectInput.length > 0
             ? textToType.substring(correctInput.length, nextCharIndex)
             : ""}
