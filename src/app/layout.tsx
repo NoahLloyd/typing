@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import { Inconsolata } from "next/font/google";
 import "./globals.css";
 
-const manrope = Manrope({ subsets: ["latin"] });
+const inconsolata = Inconsolata({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Typing",
@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={manrope.className}>{children}</body>
+      <body className={inconsolata.className}>{children}</body>
     </html>
   );
 }

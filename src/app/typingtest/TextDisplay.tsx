@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { reconstructUserInput } from "./keystrokeUtils";
 
 interface TextDisplayProps {
   textToType: string;
@@ -9,69 +10,62 @@ const TextDisplay: React.FC<TextDisplayProps> = ({
   textToType,
   keystrokes,
 }) => {
-  let userInput = "";
-  let correctInput = "";
-  let incorrectInput = "";
-  let isIncorrect = false;
+  const displayRef = useRef<HTMLDivElement>(null);
+  const nextCharRef = useRef<HTMLSpanElement>(null); // Reference for the next character span
+  const { userInput, correctInput, incorrectInput } = reconstructUserInput(
+    textToType,
+    keystrokes
+  );
 
-  // Reconstruct the user input from keystrokes
-  for (const { key } of keystrokes) {
-    if (key === "Backspace") {
-      userInput = userInput.slice(0, -1);
-      if (isIncorrect) {
-        incorrectInput = incorrectInput.slice(0, -1);
-        if (incorrectInput.length === 0) {
-          isIncorrect = false;
-        }
-      } else {
-        correctInput = correctInput.slice(0, -1);
-      }
-    } else if (key === "Backspace+Option") {
-      // Remove the last word
-      const lastSpaceIndex = userInput.lastIndexOf(" ");
-      userInput = lastSpaceIndex >= 0 ? userInput.slice(0, lastSpaceIndex) : "";
-      correctInput = userInput; // Reset correctInput as we cannot determine correctness here
-      incorrectInput = "";
-      isIncorrect = false;
-    } else if (key === "Backspace+Command") {
-      // Remove everything to the start of the line
-      userInput = "";
-      correctInput = "";
-      incorrectInput = "";
-      isIncorrect = false;
-    } else if (
-      !key.startsWith("Control") &&
-      !key.startsWith("Meta") &&
-      !key.startsWith("Alt") &&
-      !key.startsWith("Shift")
-    ) {
-      userInput += key;
-      if (userInput.length <= textToType.length) {
-        if (
-          userInput[userInput.length - 1] === textToType[userInput.length - 1]
-        ) {
-          if (!isIncorrect) {
-            correctInput += key;
-          } else {
-            incorrectInput += key;
-          }
-        } else {
-          incorrectInput += key;
-          isIncorrect = true;
-        }
+  useEffect(() => {
+    if (displayRef.current && nextCharRef.current) {
+      const lineHeight = parseInt(
+        getComputedStyle(displayRef.current).lineHeight,
+        10
+      );
+      const nextCharRect = nextCharRef.current.getBoundingClientRect();
+      const displayRect = displayRef.current.getBoundingClientRect();
+      // Calculate the top offset of the next character span relative to the displayRef
+      const nextCharOffsetTop = nextCharRef.current.offsetTop;
+      // Calculate the fixed offset to keep the middle line in view
+      const fixedOffset = lineHeight * 1.3; // Adjust this multiplier to control the vertical position
+
+      // Adjust scrollTop of the displayRef to bring the next character span into view
+      if (nextCharRect.bottom + fixedOffset > displayRect.bottom) {
+        displayRef.current.scrollTop +=
+          nextCharRect.bottom - displayRect.bottom + fixedOffset;
+      } else if (nextCharRect.top - fixedOffset < displayRect.top) {
+        displayRef.current.scrollTop -=
+          displayRect.top - nextCharRect.top + fixedOffset;
       }
     }
-  }
-
-  const remainingText = textToType.substring(userInput.length);
+  }, [userInput]); // Only re-run the effect if userInput changes
+  // Determine the next character to be typed
+  const nextCharIndex = correctInput.length + incorrectInput.length;
+  const nextChar = textToType[nextCharIndex] || " ";
 
   return (
-    <div className="text-center p-4 max-w-2xl mx-auto overflow-auto">
-      <p className="text-lg whitespace-pre-wrap">
+    <div
+      ref={displayRef}
+      className="text-center p-4 max-w-4xl mx-auto overflow-auto"
+      style={{ maxHeight: "11rem", fontSize: "2.25rem" }} // Adjusted for three lines of text
+    >
+      <p className="whitespace-pre-wrap">
         <span className="text-white">{correctInput}</span>
-        <span className="text-red-500 underline">{incorrectInput}</span>
-        <span className="text-white bg-black">|</span>
-        <span className="text-gray-500">{remainingText}</span>
+        <span className="text-red-500 underline">
+          {incorrectInput.length > 0
+            ? textToType.substring(correctInput.length, nextCharIndex)
+            : ""}
+        </span>
+        <span
+          ref={nextCharRef}
+          style={{ backgroundColor: "blue", color: "white" }}
+        >
+          {nextChar}
+        </span>
+        <span className="text-gray-500">
+          {textToType.substring(nextCharIndex + 1)}
+        </span>
       </p>
     </div>
   );

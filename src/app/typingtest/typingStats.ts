@@ -1,9 +1,8 @@
 export function calculateTypingSpeed(
   keystrokes: Array<{ key: string; timestamp: Date }>,
-  startTime: Date | null,
-  endTime: Date | null
+  testDuration: number
 ): number {
-  if (!startTime || !endTime || keystrokes.length === 0) return 0;
+  if (keystrokes.length === 0 || testDuration === 0) return 0;
 
   // Filter out non-character keys and reconstruct the user input
   const userInput = keystrokes
@@ -18,7 +17,7 @@ export function calculateTypingSpeed(
     .join("");
 
   const wordsTyped = userInput.split(" ").filter(Boolean).length;
-  const timeElapsed = (endTime.getTime() - startTime.getTime()) / 60000; // convert to minutes
+  const timeElapsed = testDuration / 60000; // convert to minutes
   return Math.round(wordsTyped / timeElapsed);
 }
 

@@ -5,16 +5,14 @@ import TextDisplay from "./TextDisplay";
 import Results from "./Results";
 import { calculateTypingSpeed, calculateAccuracy } from "./typingStats";
 import { generateText } from "./textGenerator";
+import { reconstructUserInput } from "./keystrokeUtils";
 
 const TestContainer: React.FC = () => {
   const [keystrokes, setKeystrokes] = useState<
     Array<{ key: string; timestamp: Date }>
   >([]);
-  const [testStarted, setTestStarted] = useState<boolean>(false);
   const [testEnded, setTestEnded] = useState<boolean>(false);
   const [textToType, setTextToType] = useState<string>("");
-  const [startTime, setStartTime] = useState<Date | null>(null);
-  const [endTime, setEndTime] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchText = async () => {
@@ -27,12 +25,8 @@ const TestContainer: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!testStarted) {
-        setTestStarted(true);
-        setStartTime(new Date());
-      }
+      // Removed testStarted check
 
-      const key = event.key;
       const isSpecialCombination = event.metaKey || event.altKey;
       const keyValue = isSpecialCombination
         ? `${event.key}+${event.metaKey ? "Command" : ""}${
@@ -40,15 +34,23 @@ const TestContainer: React.FC = () => {
           }`
         : event.key;
 
-      setKeystrokes((prevKeystrokes) => [
-        ...prevKeystrokes,
-        { key: keyValue, timestamp: new Date() },
-      ]);
+      if (keyValue === "Tab") {
+        restartTest();
+      } else {
+        if (testEnded) return;
 
-      if (event.key === "Enter" && !testEnded) {
-        // Assuming Enter is used to signal the end of the test
-        setTestEnded(true);
-        setEndTime(new Date());
+        setKeystrokes((prevKeystrokes) => [
+          ...prevKeystrokes,
+          { key: keyValue, timestamp: new Date() },
+        ]);
+
+        const { userInput, isIncorrect } = reconstructUserInput(
+          textToType,
+          keystrokes
+        );
+        if (userInput.length === textToType.length - 1 && !isIncorrect) {
+          setTestEnded(true);
+        }
       }
     };
 
@@ -57,17 +59,100 @@ const TestContainer: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [testStarted, testEnded]);
+  }, [testEnded, textToType, keystrokes]); // Removed testStarted from the dependency array
+
+  // Calculate the test duration based on the first and last keystroke timestamps
+  const testDuration =
+    keystrokes.length >= 2
+      ? keystrokes[keystrokes.length - 1].timestamp.getTime() -
+        keystrokes[0].timestamp.getTime()
+      : 0;
+
+  // Function to reset the test
+  const restartTest = () => {
+    setKeystrokes([]);
+    setTestEnded(false);
+    setTextToType("");
+    // Fetch new text to type
+    const fetchText = () => {
+      const text = generateText();
+      setTextToType(text);
+    };
+    fetchText();
+  };
+
+  const replayTest = () => {
+    setTestEnded(false);
+    setTextToType(textToType); // Ensure the text is set for replay
+
+    let replayIndex = 0;
+    const replayKeystrokes = () => {
+      if (replayIndex < keystrokes.length) {
+        const currentKeystroke = keystrokes[replayIndex];
+        const nextKeystroke = keystrokes[replayIndex + 1];
+        const delay = nextKeystroke
+          ? nextKeystroke.timestamp.getTime() -
+            currentKeystroke.timestamp.getTime()
+          : 1000; // Arbitrary delay after the last keystroke
+
+        setKeystrokes((prevKeystrokes) => [
+          ...prevKeystrokes,
+          currentKeystroke,
+        ]);
+
+        replayIndex++;
+        setTimeout(replayKeystrokes, delay);
+      } else {
+        setTestEnded(true);
+      }
+    };
+
+    setKeystrokes([]); // Clear current keystrokes
+    setTimeout(replayKeystrokes, 300); // Start replay after 300 milliseconds
+  };
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
       {!testEnded ? (
-        <TextDisplay textToType={textToType} keystrokes={keystrokes} />
+        <>
+          <TextDisplay textToType={textToType} keystrokes={keystrokes} />
+          <div className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded">
+            <button tabIndex={-1} onClick={restartTest} className="mr-3 ">
+              Restart
+            </button>
+            <div className=" bg-slate-800 font-light rounded py-1 px-3">
+              <button
+                tabIndex={-1}
+                onClick={restartTest}
+                className="text-slate-300"
+              >
+                ⇥
+              </button>
+            </div>
+          </div>
+        </>
       ) : (
-        <Results
-          speed={calculateTypingSpeed(keystrokes, startTime, endTime)}
-          accuracy={calculateAccuracy(keystrokes, textToType)}
-        />
+        <>
+          <Results
+            speed={calculateTypingSpeed(keystrokes, testDuration)}
+            accuracy={calculateAccuracy(keystrokes, textToType)}
+            onReplay={replayTest} // Pass the replay function here
+          />
+          <div className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded">
+            <button onClick={restartTest} className="mr-3" tabIndex={-1}>
+              Restart
+            </button>
+            <div className=" bg-slate-800 font-light rounded py-1 px-3">
+              <button
+                onClick={restartTest}
+                tabIndex={-1}
+                className="text-slate-300"
+              >
+                ⇥
+              </button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
