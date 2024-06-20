@@ -7,6 +7,7 @@ import { generateText } from "./textGenerator";
 import { reconstructUserInput } from "./keystrokeUtils";
 import { Clock, Type } from "lucide-react"; // Import Lucide icons
 import SelectionPill from "./SelectionPill";
+import VirtualKeyboard from "./VirtualKeyboard";
 
 const TestContainer: React.FC = () => {
   const [keystrokes, setKeystrokes] = useState<
@@ -18,7 +19,7 @@ const TestContainer: React.FC = () => {
   const [testEnded, setTestEnded] = useState<boolean>(false);
   const [replaying, setReplaying] = useState<boolean>(false);
   const [textToType, setTextToType] = useState<string>("");
-  const [selectionType, setSelectionType] = useState<string>("words");
+  const [selectionType, setSelectionType] = useState<string>("time");
   const [selectionValue, setSelectionValue] = useState<number>(15);
 
   const handleSelect = (type: string, value: number) => {
@@ -145,21 +146,7 @@ const TestContainer: React.FC = () => {
             replaying={replaying}
             setReplaying={setReplaying}
           />
-          <div
-            onClick={() => {
-              replaying ? setReplaying(false) : restartTest();
-            }}
-            className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded"
-          >
-            <button tabIndex={-1} className="mr-3">
-              Restart
-            </button>
-            <div className="bg-slate-800 font-light rounded py-1 px-3">
-              <button tabIndex={-1} className="text-slate-300">
-                ⇥
-              </button>
-            </div>
-          </div>
+          <VirtualKeyboard keystrokes={keystrokes} />
         </>
       ) : (
         <>
