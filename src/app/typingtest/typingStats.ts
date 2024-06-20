@@ -18,11 +18,15 @@ export function calculateTypingSpeed(
     testDuration = Math.min(testDuration, timeLimitMs);
   }
 
-  // Calculate the number of words typed within the time frame
+  // Calculate the number of alphabetic characters typed within the time frame
   const { correctInput } = reconstructUserInput(sourceText, keystrokes);
-  const wordsTyped = correctInput.substring(0, testDuration).split(" ").length;
+  const letterCount = correctInput.replace(/[^A-Za-z]/g, "").length;
+  const estimatedWords = letterCount / 4.7; // Estimate the number of words based on letter count
+
   const timeElapsed = testDuration / 60000; // convert to minutes
-  return Math.round(wordsTyped / timeElapsed);
+  const wpm = estimatedWords / timeElapsed; // Calculate WPM based on estimated words
+
+  return Math.round(wpm); // Return the WPM
 }
 
 export function calculateAccuracy(
@@ -71,8 +75,10 @@ export function calculateWPMOverTime(
   return results;
 }
 
-export function calculateTotalTime(keystrokes: Array<{ key: string; timestamp: Date }>): string {
-  if (keystrokes.length === 0) return '0s';
+export function calculateTotalTime(
+  keystrokes: Array<{ key: string; timestamp: Date }>
+): string {
+  if (keystrokes.length === 0) return "0s";
 
   const startTime = keystrokes[0].timestamp.getTime();
   const endTime = keystrokes[keystrokes.length - 1].timestamp.getTime();

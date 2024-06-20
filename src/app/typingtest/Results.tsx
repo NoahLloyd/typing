@@ -14,7 +14,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Command } from "lucide-react";
+import { Option } from "lucide-react";
 
 interface ResultsProps {
   keystrokes: Array<{ key: string; timestamp: Date }>;
@@ -29,13 +29,13 @@ const Results: React.FC<ResultsProps> = ({
   sourceText,
   onReplay,
   onRestart,
-  timeLimit=null
+  timeLimit = null,
 }) => {
   let speed;
   let totalTime;
   if (timeLimit) {
     speed = calculateTypingSpeed(keystrokes, sourceText, timeLimit);
-    totalTime = timeLimit
+    totalTime = timeLimit;
   } else {
     totalTime = calculateTotalTime(keystrokes);
     speed = calculateTypingSpeed(keystrokes, sourceText);
@@ -73,14 +73,13 @@ const Results: React.FC<ResultsProps> = ({
 
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key === "r" || event.key === "R") {
+      console.log(event);
+      if (event.key === "π") {
         onReplay();
       }
     };
 
-    setTimeout(() => {
-      window.addEventListener("keypress", handleKeyPress);
-    }, 100);
+    window.addEventListener("keypress", handleKeyPress);
     // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("keypress", handleKeyPress);
@@ -153,27 +152,19 @@ const Results: React.FC<ResultsProps> = ({
           className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded"
         >
           <p className="mr-3 mb-0">Replay</p>
-          <div className=" bg-slate-800 font-light rounded py-1 px-3">
-            <button
-              onClick={onRestart}
-              tabIndex={-1}
-              className="text-slate-300"
-            >
-              R
-            </button>
-          </div>
-          {/* <div className="  font-light rounded">
+
+          <div className="  font-light rounded">
             <div className="flex gap-1 items-center justify-center">
               <div className="text-slate-300 bg-slate-800 p-2 rounded flex items-center justify-center">
-                <Command color="#CBD5E1" size={16} />
+                <Option color="#CBD5E1" size={16} />
               </div>
               <div className="text-slate-300 text-base bg-slate-800 rounded p-2 flex items-center justify-center">
                 <div className="h-4 w-4 flex items-center font-medium justify-center">
-                  R
+                  P
                 </div>
               </div>
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

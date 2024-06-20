@@ -31,9 +31,19 @@ export function reconstructUserInput(
 
       userInput =
         lastSpaceIndex >= 0 ? userInput.slice(0, lastSpaceIndex + 1) : "";
-      correctInput = userInput; // Reset correctInput as we cannot determine correctness here
+
+      // Re-evaluate correctInput and incorrectInput based on the remaining userInput
+      correctInput = "";
       incorrectInput = "";
       isIncorrect = false;
+      for (let i = 0; i < userInput.length; i++) {
+        if (userInput[i] === textToType[i]) {
+          correctInput += userInput[i];
+        } else {
+          incorrectInput += userInput[i];
+          isIncorrect = true;
+        }
+      }
     } else if (key === "Backspace+Command") {
       // Remove everything to the start of the line
       userInput = "";

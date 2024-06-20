@@ -12,7 +12,11 @@ const TestContainer: React.FC = () => {
   const [keystrokes, setKeystrokes] = useState<
     Array<{ key: string; timestamp: Date }>
   >([]);
+  const [originalKeystrokes, setOriginalKeystrokes] = useState<
+    Array<{ key: string; timestamp: Date }>
+  >([]);
   const [testEnded, setTestEnded] = useState<boolean>(false);
+  const [replaying, setReplaying] = useState<boolean>(false);
   const [textToType, setTextToType] = useState<string>("");
   const [selectionType, setSelectionType] = useState<string>("words");
   const [selectionValue, setSelectionValue] = useState<number>(15);
@@ -92,14 +96,21 @@ const TestContainer: React.FC = () => {
   };
 
   const replayTest = () => {
+    setOriginalKeystrokes(keystrokes); // Store the original keystrokes
     setTestEnded(false);
+    setReplaying(true);
     setTextToType(textToType);
 
     let replayIndex = 0;
     const replayKeystrokes = () => {
-      if (replayIndex < keystrokes.length) {
-        const currentKeystroke = keystrokes[replayIndex];
-        const nextKeystroke = keystrokes[replayIndex + 1];
+      if (replaying) {
+        setKeystrokes(originalKeystrokes); // Restore the original keystrokes
+        return;
+      }
+
+      if (replayIndex < originalKeystrokes.length) {
+        const currentKeystroke = originalKeystrokes[replayIndex];
+        const nextKeystroke = originalKeystrokes[replayIndex + 1];
         const delay = nextKeystroke
           ? nextKeystroke.timestamp.getTime() -
             currentKeystroke.timestamp.getTime()
@@ -114,10 +125,11 @@ const TestContainer: React.FC = () => {
         setTimeout(replayKeystrokes, delay);
       } else {
         setTestEnded(true);
+        setReplaying(false);
       }
     };
 
-    setKeystrokes([]);
+    setKeystrokes([]); // Clear current keystrokes to start replay
     setTimeout(replayKeystrokes, 300);
   };
 
@@ -127,17 +139,23 @@ const TestContainer: React.FC = () => {
 
       {!testEnded ? (
         <>
-          <TextDisplay textToType={textToType} keystrokes={keystrokes} />
-          <div className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded">
-            <button tabIndex={-1} onClick={restartTest} className="mr-3">
+          <TextDisplay
+            textToType={textToType}
+            keystrokes={keystrokes}
+            replaying={replaying}
+            setReplaying={setReplaying}
+          />
+          <div
+            onClick={() => {
+              replaying ? setReplaying(false) : restartTest();
+            }}
+            className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded"
+          >
+            <button tabIndex={-1} className="mr-3">
               Restart
             </button>
             <div className="bg-slate-800 font-light rounded py-1 px-3">
-              <button
-                tabIndex={-1}
-                onClick={restartTest}
-                className="text-slate-300"
-              >
+              <button tabIndex={-1} className="text-slate-300">
                 ⇥
               </button>
             </div>

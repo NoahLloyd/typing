@@ -4,11 +4,15 @@ import { reconstructUserInput } from "./keystrokeUtils";
 interface TextDisplayProps {
   textToType: string;
   keystrokes: Array<{ key: string; timestamp: Date }>;
+  replaying: boolean;
+  setReplaying: (replaying: boolean) => void;
 }
 
 const TextDisplay: React.FC<TextDisplayProps> = ({
   textToType,
   keystrokes,
+  replaying,
+  setReplaying
 }) => {
   const displayRef = useRef<HTMLDivElement>(null);
   const nextCharRef = useRef<HTMLSpanElement>(null); // Reference for the next character span
