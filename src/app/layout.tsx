@@ -21,10 +21,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inconsolata.className}>
         <NextAuthProvider>
-          <div>
+          <div className="w-full">
             <Header />
           </div>
-          <div>{children}</div>
+          <div className="w-full">{children}</div>
         </NextAuthProvider>
       </body>
     </html>
