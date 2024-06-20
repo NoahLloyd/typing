@@ -92,15 +92,15 @@ const Results: React.FC<ResultsProps> = ({
         <div className="flex flex-col space-y-4">
           <div className=" ">
             <p className="text-md text-slate-500 uppercase">WPM</p>
-            <p className="text-5xl font-bold text-teal-500">{speed}</p>
+            <p className="text-5xl font-bold text-slate-100">{speed}</p>
           </div>
           <div className="">
             <p className="text-md text-slate-500 uppercase">ACC</p>
-            <p className="text-5xl font-bold text-teal-500">{accuracy}%</p>
+            <p className="text-5xl font-bold text-slate-100">{accuracy}%</p>
           </div>
           <div className="">
             <p className="text-md text-slate-500 uppercase">TIME</p>
-            <p className="text-5xl font-bold text-teal-500">{totalTime}</p>
+            <p className="text-5xl font-bold text-slate-100">{totalTime}</p>
           </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
@@ -124,10 +124,10 @@ const Results: React.FC<ResultsProps> = ({
             <Line
               type="monotone"
               dataKey="wpm"
-              stroke="#14B8A6"
+              stroke="#CBD5E1"
               strokeWidth={3}
-              dot={{ stroke: "#14B8A6", strokeWidth: 2, fill: "#14B8A6" }}
-              activeDot={{ r: 6, fill: "#14B8A6", stroke: "none" }}
+              dot={{ stroke: "#CBD5E1", strokeWidth: 2, fill: "#CBD5E1" }}
+              activeDot={{ r: 6, fill: "#CBD5E1", stroke: "none" }}
             />
           </LineChart>
         </ResponsiveContainer>
