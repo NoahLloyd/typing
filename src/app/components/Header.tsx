@@ -34,6 +34,7 @@ const Header: React.FC = () => {
         <button
           onClick={() => signIn()}
           className="hover:bg-slate-900 transition-colors duration-200 p-2 rounded"
+          tabIndex={-1}
         >
           Sign in
         </button>

@@ -33,14 +33,21 @@ export function calculateAccuracy(
   keystrokes: Array<{ key: string; timestamp: Date }>,
   sourceText: string
 ): number {
-  const { correctInput, incorrectInput } = reconstructUserInput(
-    sourceText,
-    keystrokes
-  );
+  // Use the reconstructUserInput function to get the userInput
+  const { userInput } = reconstructUserInput(sourceText, keystrokes);
 
-  const correctChars = correctInput.length;
-  const totalChars = correctChars + incorrectInput.length;
-  return Math.round((correctChars / totalChars) * 100);
+  let incorrectChars = 0;
+  let totalTypedChars = userInput.length; // Now based on userInput length
+
+  for (const { key } of keystrokes) {
+    if (key.includes("Backspace")) {
+      incorrectChars += 1;
+    }
+  }
+
+  // Calculate accuracy based on the userInput
+  const accuracy = ((totalTypedChars - incorrectChars) / totalTypedChars) * 100;
+  return Math.round(accuracy);
 }
 
 export function calculateWPMOverTime(
