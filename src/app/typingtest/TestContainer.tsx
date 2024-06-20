@@ -111,7 +111,7 @@ const TestContainer: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col bg-slate-950 items-center justify-center h-screen">
+    <div className="flex flex-col bg-slate-950 items-center justify-center">
       {!testEnded ? (
         <>
           <TextDisplay textToType={textToType} keystrokes={keystrokes} />
