@@ -14,6 +14,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { Command } from "lucide-react";
 
 interface ResultsProps {
   keystrokes: Array<{ key: string; timestamp: Date }>;
@@ -32,6 +33,34 @@ const Results: React.FC<ResultsProps> = ({
   const accuracy = calculateAccuracy(keystrokes, sourceText);
   const wpmData = calculateWPMOverTime(keystrokes, sourceText);
   const totalTime = calculateTotalTime(keystrokes);
+
+  // Calculate the difference in time for the x-axis
+  const wpmDataWithTimeDiff = wpmData.map((data, index, array) => ({
+    ...data,
+    time: index === 0 ? 0 : data.time - array[0].time,
+  }));
+
+  // Custom tooltip content
+  const CustomTooltip = ({
+    active,
+    payload,
+    label,
+  }: {
+    active: boolean;
+    payload: any[];
+    label: string;
+  }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-gray-700 text-white text-xs p-2 rounded shadow-lg">
+          <p>{`Time: ${label}s`}</p>
+          <p>{`WPM: ${payload[0].value}`}</p>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   React.useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
@@ -66,12 +95,27 @@ const Results: React.FC<ResultsProps> = ({
           </div>
         </div>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={wpmData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="wpm" stroke="#8884d8" />
+          <LineChart data={wpmDataWithTimeDiff}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2f2f2f" />
+            <XAxis dataKey="time" tickFormatter={(time) => `${time}s`} />
+            <YAxis stroke="#2f2f2f" />
+            <Tooltip
+              content={({ active, payload, label }) => (
+                <CustomTooltip
+                  active={active || false}
+                  payload={payload || []}
+                  label={label}
+                />
+              )}
+            />
+            <Line
+              type="monotone"
+              dataKey="wpm"
+              stroke="#008080"
+              strokeWidth={3}
+              dot={{ stroke: "#008080", strokeWidth: 2, fill: "#008080" }}
+              activeDot={{ r: 6, fill: "#008080", stroke: "none" }}
+            />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -90,15 +134,32 @@ const Results: React.FC<ResultsProps> = ({
             </button>
           </div>
         </div>
-        <div className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded">
-          <button onClick={onReplay} className="mr-3 ">
-            Replay
-          </button>
+        <div
+          onClick={onReplay}
+          className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded"
+        >
+          <p className="mr-3 mb-0">Replay</p>
           <div className=" bg-slate-800 font-light rounded py-1 px-3">
-            <button onClick={onReplay} className="text-slate-300">
+            <button
+              onClick={onRestart}
+              tabIndex={-1}
+              className="text-slate-300"
+            >
               R
             </button>
           </div>
+          {/* <div className="  font-light rounded">
+            <div className="flex gap-1 items-center justify-center">
+              <div className="text-slate-300 bg-slate-800 p-2 rounded flex items-center justify-center">
+                <Command color="#CBD5E1" size={16} />
+              </div>
+              <div className="text-slate-300 text-base bg-slate-800 rounded p-2 flex items-center justify-center">
+                <div className="h-4 w-4 flex items-center font-medium justify-center">
+                  R
+                </div>
+              </div>
+            </div>
+          </div> */}
         </div>
       </div>
     </div>
