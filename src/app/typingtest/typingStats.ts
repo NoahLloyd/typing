@@ -1,22 +1,17 @@
+import { reconstructUserInput } from "./keystrokeUtils";
+
 export function calculateTypingSpeed(
   keystrokes: Array<{ key: string; timestamp: Date }>,
-  testDuration: number
+  sourceText: string
 ): number {
-  if (keystrokes.length === 0 || testDuration === 0) return 0;
+  if (keystrokes.length === 0) return 0;
 
-  // Filter out non-character keys and reconstruct the user input
-  const userInput = keystrokes
-    .filter(
-      (k) =>
-        !k.key.startsWith("Control") &&
-        !k.key.startsWith("Meta") &&
-        !k.key.startsWith("Alt") &&
-        !k.key.startsWith("Shift")
-    )
-    .map((k) => (k.key === "Backspace" ? "" : k.key))
-    .join("");
+  // Assuming keystrokes are ordered by timestamp
+  const startTime = keystrokes[0].timestamp;
+  const endTime = keystrokes[keystrokes.length - 1].timestamp;
+  const testDuration = endTime.getTime() - startTime.getTime();
 
-  const wordsTyped = userInput.split(" ").filter(Boolean).length;
+  const wordsTyped = sourceText.split(" ").length;
   const timeElapsed = testDuration / 60000; // convert to minutes
   return Math.round(wordsTyped / timeElapsed);
 }
@@ -25,35 +20,54 @@ export function calculateAccuracy(
   keystrokes: Array<{ key: string; timestamp: Date }>,
   sourceText: string
 ): number {
-  // Reconstruct the user input
-  let userInput = "";
-  for (const k of keystrokes) {
-    if (k.key === "Backspace") {
-      userInput = userInput.slice(0, -1);
-    } else if (
-      !k.key.startsWith("Control") &&
-      !k.key.startsWith("Meta") &&
-      !k.key.startsWith("Alt") &&
-      !k.key.startsWith("Shift")
+  const { correctInput, incorrectInput } = reconstructUserInput(
+    sourceText,
+    keystrokes
+  );
+
+  const correctChars = correctInput.length;
+  const totalChars = correctChars + incorrectInput.length;
+  return Math.round((correctChars / totalChars) * 100);
+}
+
+export function calculateWPMOverTime(
+  keystrokes: Array<{ key: string; timestamp: Date }>,
+  sourceText: string
+): Array<{ time: number; wpm: number }> {
+  const interval = 5; // Calculate WPM every 5 seconds
+  const results = [];
+  let wordCount = 0;
+  let startTime = keystrokes[0]?.timestamp.getTime();
+
+  for (let i = 0; i < keystrokes.length; i++) {
+    const currentTime = keystrokes[i].timestamp.getTime();
+    if (keystrokes[i].key === " " || keystrokes[i].key === "Enter") {
+      wordCount++;
+    }
+    if (
+      currentTime - startTime >= interval * 1000 ||
+      i === keystrokes.length - 1
     ) {
-      userInput += k.key;
+      const timePassed = (currentTime - startTime) / 60000; // Convert to minutes
+      const wpm = timePassed > 0 ? wordCount / timePassed : 0;
+      results.push({
+        time: Math.round(currentTime / 1000),
+        wpm: Math.round(wpm),
+      });
+      startTime = currentTime;
+      wordCount = 0;
     }
   }
 
-  const charTyped = userInput.length;
-  const charTotal = sourceText.length;
-  let errors = 0;
-  let sourceIndex = 0;
+  return results;
+}
 
-  for (let i = 0; i < charTyped; i++) {
-    if (sourceText[sourceIndex] !== userInput[i]) {
-      errors++;
-    } else {
-      sourceIndex++;
-    }
-  }
+export function calculateTotalTime(keystrokes: Array<{ key: string; timestamp: Date }>): string {
+  if (keystrokes.length === 0) return '0s';
 
-  errors += charTotal - sourceIndex; // Add remaining source text characters as errors
+  const startTime = keystrokes[0].timestamp.getTime();
+  const endTime = keystrokes[keystrokes.length - 1].timestamp.getTime();
+  const totalTime = (endTime - startTime) / 1000; // Convert to seconds
 
-  return Math.round(((charTyped - errors) / charTotal) * 100);
+  return `${totalTime}s`;
 }

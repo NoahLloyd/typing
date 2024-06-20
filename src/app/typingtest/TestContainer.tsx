@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import TextDisplay from "./TextDisplay";
 import Results from "./Results";
-import { calculateTypingSpeed, calculateAccuracy } from "./typingStats";
 import { generateText } from "./textGenerator";
 import { reconstructUserInput } from "./keystrokeUtils";
 
@@ -112,7 +111,7 @@ const TestContainer: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen">
+    <div className="flex flex-col bg-slate-950 items-center justify-center h-screen">
       {!testEnded ? (
         <>
           <TextDisplay textToType={textToType} keystrokes={keystrokes} />
@@ -134,24 +133,11 @@ const TestContainer: React.FC = () => {
       ) : (
         <>
           <Results
-            speed={calculateTypingSpeed(keystrokes, testDuration)}
-            accuracy={calculateAccuracy(keystrokes, textToType)}
-            onReplay={replayTest} // Pass the replay function here
+            keystrokes={keystrokes}
+            sourceText={textToType}
+            onReplay={replayTest}
+            onRestart={restartTest}
           />
-          <div className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded">
-            <button onClick={restartTest} className="mr-3" tabIndex={-1}>
-              Restart
-            </button>
-            <div className=" bg-slate-800 font-light rounded py-1 px-3">
-              <button
-                onClick={restartTest}
-                tabIndex={-1}
-                className="text-slate-300"
-              >
-                ⇥
-              </button>
-            </div>
-          </div>
         </>
       )}
     </div>

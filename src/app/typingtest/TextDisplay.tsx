@@ -47,7 +47,7 @@ const TextDisplay: React.FC<TextDisplayProps> = ({
   return (
     <div
       ref={displayRef}
-      className="text-center p-4 max-w-4xl mx-auto overflow-auto"
+      className="text-center p-4 my-8 max-w-4xl mx-auto overflow-auto"
       style={{ maxHeight: "11rem", fontSize: "2.25rem" }} // Adjusted for three lines of text
     >
       <p className="whitespace-pre-wrap">
@@ -57,10 +57,7 @@ const TextDisplay: React.FC<TextDisplayProps> = ({
             ? textToType.substring(correctInput.length, nextCharIndex)
             : ""}
         </span>
-        <span
-          ref={nextCharRef}
-          style={{ backgroundColor: "blue", color: "white" }}
-        >
+        <span ref={nextCharRef} className="bg-slate-500 text-black">
           {nextChar}
         </span>
         <span className="text-gray-500">
