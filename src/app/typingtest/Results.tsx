@@ -19,6 +19,7 @@ import { Command } from "lucide-react";
 interface ResultsProps {
   keystrokes: Array<{ key: string; timestamp: Date }>;
   sourceText: string;
+  timeLimit: number | null;
   onReplay: () => void;
   onRestart: () => void;
 }
@@ -28,11 +29,19 @@ const Results: React.FC<ResultsProps> = ({
   sourceText,
   onReplay,
   onRestart,
+  timeLimit=null
 }) => {
-  const speed = calculateTypingSpeed(keystrokes, sourceText);
+  let speed;
+  let totalTime;
+  if (timeLimit) {
+    speed = calculateTypingSpeed(keystrokes, sourceText, timeLimit);
+    totalTime = timeLimit
+  } else {
+    totalTime = calculateTotalTime(keystrokes);
+    speed = calculateTypingSpeed(keystrokes, sourceText);
+  }
   const accuracy = calculateAccuracy(keystrokes, sourceText);
   const wpmData = calculateWPMOverTime(keystrokes, sourceText);
-  const totalTime = calculateTotalTime(keystrokes);
 
   // Calculate the difference in time for the x-axis
   const wpmDataWithTimeDiff = wpmData.map((data, index, array) => ({
@@ -69,8 +78,9 @@ const Results: React.FC<ResultsProps> = ({
       }
     };
 
-    window.addEventListener("keypress", handleKeyPress);
-
+    setTimeout(() => {
+      window.addEventListener("keypress", handleKeyPress);
+    }, 100);
     // Cleanup the event listener when the component unmounts
     return () => {
       window.removeEventListener("keypress", handleKeyPress);

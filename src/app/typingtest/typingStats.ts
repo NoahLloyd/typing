@@ -2,16 +2,25 @@ import { reconstructUserInput } from "./keystrokeUtils";
 
 export function calculateTypingSpeed(
   keystrokes: Array<{ key: string; timestamp: Date }>,
-  sourceText: string
+  sourceText: string,
+  timeLimit?: number // Optional time limit in seconds
 ): number {
   if (keystrokes.length === 0) return 0;
 
-  // Assuming keystrokes are ordered by timestamp
-  const startTime = keystrokes[0].timestamp;
-  const endTime = keystrokes[keystrokes.length - 1].timestamp;
-  const testDuration = endTime.getTime() - startTime.getTime();
+  const startTime = keystrokes[0].timestamp.getTime();
+  let endTime = keystrokes[keystrokes.length - 1].timestamp.getTime();
+  let testDuration = endTime - startTime;
 
-  const wordsTyped = sourceText.split(" ").length;
+  // If there's a time limit, adjust the end time and test duration accordingly
+  if (timeLimit) {
+    const timeLimitMs = timeLimit * 1000;
+    endTime = startTime + timeLimitMs;
+    testDuration = Math.min(testDuration, timeLimitMs);
+  }
+
+  // Calculate the number of words typed within the time frame
+  const { correctInput } = reconstructUserInput(sourceText, keystrokes);
+  const wordsTyped = correctInput.substring(0, testDuration).split(" ").length;
   const timeElapsed = testDuration / 60000; // convert to minutes
   return Math.round(wordsTyped / timeElapsed);
 }

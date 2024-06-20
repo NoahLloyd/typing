@@ -517,7 +517,7 @@ const generateWeightedWord = (words: string[]): string => {
   return selectedGroup[randomIndex];
 };
 
-export const generateText = (length: number = 15): string => {
+export const generateText = (length: number = 500): string => {
   let text = "";
   for (let i = 0; i < length; i++) {
     text += generateWeightedWord(words) + " ";

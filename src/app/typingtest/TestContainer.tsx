@@ -5,6 +5,8 @@ import TextDisplay from "./TextDisplay";
 import Results from "./Results";
 import { generateText } from "./textGenerator";
 import { reconstructUserInput } from "./keystrokeUtils";
+import { Clock, Type } from "lucide-react"; // Import Lucide icons
+import SelectionPill from "./SelectionPill";
 
 const TestContainer: React.FC = () => {
   const [keystrokes, setKeystrokes] = useState<
@@ -12,20 +14,29 @@ const TestContainer: React.FC = () => {
   >([]);
   const [testEnded, setTestEnded] = useState<boolean>(false);
   const [textToType, setTextToType] = useState<string>("");
+  const [selectionType, setSelectionType] = useState<string>("words");
+  const [selectionValue, setSelectionValue] = useState<number>(15);
+
+  const handleSelect = (type: string, value: number) => {
+    console.log(`${type} selected:`, value);
+    setSelectionType(type);
+    setSelectionValue(value);
+    restartTest();
+  };
 
   useEffect(() => {
-    const fetchText = async () => {
-      const text = await generateText();
+    const fetchText = () => {
+      const text = generateText(
+        selectionType === "words" ? selectionValue : undefined
+      );
       setTextToType(text);
     };
 
     fetchText();
-  }, []);
+  }, [selectionType, selectionValue]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      // Removed testStarted check
-
       const isSpecialCombination = event.metaKey || event.altKey;
       const keyValue = isSpecialCombination
         ? `${event.key}+${event.metaKey ? "Command" : ""}${
@@ -58,31 +69,31 @@ const TestContainer: React.FC = () => {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [testEnded, textToType, keystrokes]); // Removed testStarted from the dependency array
+  }, [testEnded, textToType, keystrokes]);
 
-  // Calculate the test duration based on the first and last keystroke timestamps
   const testDuration =
     keystrokes.length >= 2
       ? keystrokes[keystrokes.length - 1].timestamp.getTime() -
         keystrokes[0].timestamp.getTime()
       : 0;
 
-  // Function to reset the test
+  useEffect(() => {
+    if (selectionType === "time" && testDuration >= selectionValue * 1000) {
+      setTestEnded(true);
+    }
+  }, [testDuration, selectionType, selectionValue]);
+
   const restartTest = () => {
     setKeystrokes([]);
     setTestEnded(false);
-    setTextToType("");
-    // Fetch new text to type
-    const fetchText = () => {
-      const text = generateText();
-      setTextToType(text);
-    };
-    fetchText();
+    setTextToType(
+      generateText(selectionType === "words" ? selectionValue : undefined)
+    );
   };
 
   const replayTest = () => {
     setTestEnded(false);
-    setTextToType(textToType); // Ensure the text is set for replay
+    setTextToType(textToType);
 
     let replayIndex = 0;
     const replayKeystrokes = () => {
@@ -92,7 +103,7 @@ const TestContainer: React.FC = () => {
         const delay = nextKeystroke
           ? nextKeystroke.timestamp.getTime() -
             currentKeystroke.timestamp.getTime()
-          : 1000; // Arbitrary delay after the last keystroke
+          : 1000;
 
         setKeystrokes((prevKeystrokes) => [
           ...prevKeystrokes,
@@ -106,20 +117,22 @@ const TestContainer: React.FC = () => {
       }
     };
 
-    setKeystrokes([]); // Clear current keystrokes
-    setTimeout(replayKeystrokes, 300); // Start replay after 300 milliseconds
+    setKeystrokes([]);
+    setTimeout(replayKeystrokes, 300);
   };
 
   return (
     <div className="flex flex-col w-full bg-slate-950 items-center justify-center">
+      {keystrokes.length === 0 && <SelectionPill onSelect={handleSelect} />}
+
       {!testEnded ? (
         <>
           <TextDisplay textToType={textToType} keystrokes={keystrokes} />
           <div className="flex items-center justify-center bg-slate-900 py-2 px-4 rounded">
-            <button tabIndex={-1} onClick={restartTest} className="mr-3 ">
+            <button tabIndex={-1} onClick={restartTest} className="mr-3">
               Restart
             </button>
-            <div className=" bg-slate-800 font-light rounded py-1 px-3">
+            <div className="bg-slate-800 font-light rounded py-1 px-3">
               <button
                 tabIndex={-1}
                 onClick={restartTest}
@@ -137,6 +150,7 @@ const TestContainer: React.FC = () => {
             sourceText={textToType}
             onReplay={replayTest}
             onRestart={restartTest}
+            timeLimit={selectionType === "time" ? selectionValue : null}
           />
         </>
       )}
