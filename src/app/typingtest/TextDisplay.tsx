@@ -12,7 +12,7 @@ const TextDisplay: React.FC<TextDisplayProps> = ({
   textToType,
   keystrokes,
   replaying,
-  setReplaying
+  setReplaying,
 }) => {
   const displayRef = useRef<HTMLDivElement>(null);
   const nextCharRef = useRef<HTMLSpanElement>(null); // Reference for the next character span
@@ -70,7 +70,7 @@ const TextDisplay: React.FC<TextDisplayProps> = ({
         <span ref={nextCharRef} className="bg-slate-500 text-black">
           {nextChar}
         </span>
-        <span className="text-gray-500">
+        <span className="text-slate-500">
           {textToType.substring(nextCharIndex + 1)}
         </span>
       </p>
